@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deliva — Retailer</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="max-width:640px;margin:0 auto;">
+  <div class="topbar">
+    <h1>Retailer</h1>
+    <button class="secondary" onclick="Api.logout()">Sign out</button>
+  </div>
+
+  <div class="card">
+    <h2>New delivery request</h2>
+    <input id="customer_name" placeholder="Customer name">
+    <input id="customer_phone" placeholder="Customer phone">
+    <input id="address" placeholder="Delivery address">
+    <textarea id="item_description" placeholder="Item description"></textarea>
+    <button onclick="submitRequest()">Log request</button>
+    <p id="err" class="error"></p>
+  </div>
+
+  <h2>Your requests</h2>
+  <div id="list"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    Api.requireRole('retailer');
+    const socket = io();
+
+    async function submitRequest() {
+      const body = {
+        customer_name: val('customer_name'),
+        customer_phone: val('customer_phone'),
+        address: val('address'),
+        item_description: val('item_description'),
+      };
+      try {
+        await Api.call('/deliveries', { method: 'POST', body });
+        ['customer_name','customer_phone','address','item_description'].forEach(id => document.getElementById(id).value = '');
+        load();
+      } catch (e) {
+        document.getElementById('err').textContent = e.message;
+      }
+    }
+    function val(id) { return document.getElementById(id).value.trim(); }
+
+    async function load() {
+      const rows = await Api.call('/deliveries');
+      document.getElementById('list').innerHTML = rows.map(r => `
+        <div class="card">
+          <div class="row"><b>#${r.id} ${r.customer_name}</b> <span class="badge ${r.status}">${r.status}</span></div>
+          <div class="muted">${r.address} — ${r.item_description}</div>
+        </div>
+      `).join('') || '<p class="muted">No requests yet.</p>';
+    }
+
+    socket.on('request:new', load);
+    socket.on('request:updated', load);
+    load();
+  </script>
+</body>
+</html>

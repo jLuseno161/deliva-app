@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deliva — Rider</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="max-width:640px;margin:0 auto;">
+  <div class="topbar">
+    <h1>Rider</h1>
+    <button class="secondary" onclick="Api.logout()">Sign out</button>
+  </div>
+
+  <h2>Your deliveries</h2>
+  <div id="list"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    Api.requireRole('rider');
+    const socket = io();
+    const nextLabel = { Assigned: 'Mark Picked Up', PickedUp: 'Mark Delivered' };
+
+    async function load() {
+      const rows = await Api.call('/deliveries');
+      document.getElementById('list').innerHTML = rows.map(r => `
+        <div class="card">
+          <div class="row"><b>#${r.id} ${r.customer_name}</b> <span class="badge ${r.status}">${r.status}</span></div>
+          <div class="muted">${r.address} — ${r.item_description}</div>
+          ${r.status === 'PickedUp' ? `
+            <div class="row" style="margin-top:8px;">
+              <input id="code_${r.id}" placeholder="Scan / enter confirmation code">
+              <button onclick="advance(${r.id})">Confirm delivered</button>
+            </div>` : ''}
+          ${r.status === 'Assigned' ? `<button style="margin-top:8px;" onclick="advance(${r.id})">${nextLabel[r.status]}</button>` : ''}
+        </div>
+      `).join('') || '<p class="muted">No deliveries assigned yet.</p>';
+    }
+
+    async function advance(id) {
+      const codeEl = document.getElementById(`code_${id}`);
+      const body = codeEl ? { code: codeEl.value.trim() } : {};
+      try {
+        await Api.call(`/deliveries/${id}/status`, { method: 'POST', body });
+        load();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    socket.on('request:new', load);
+    socket.on('request:updated', load);
+    load();
+  </script>
+</body>
+</html>

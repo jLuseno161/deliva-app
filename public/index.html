@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deliva — Sign in</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="max-width:400px;margin:60px auto;">
+  <h1>Deliva</h1>
+  <p class="muted">Delivery coordination for local retailers. Demo password for every account: <b>demo123</b></p>
+  <div class="card">
+    <label>Phone</label>
+    <input id="phone" placeholder="e.g. 0700000001">
+    <label>Password</label>
+    <input id="password" type="password" placeholder="demo123">
+    <button onclick="doLogin()">Sign in</button>
+    <p id="err" class="error"></p>
+  </div>
+  <div class="card muted">
+    <div>Retailer demo: 0700000001</div>
+    <div>Dispatcher demo: 0700000002</div>
+    <div>Rider demo: 0700000003 (or 0700000004)</div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const dest = { retailer: '/retailer.html', dispatcher: '/dispatcher.html', rider: '/rider.html' };
+    async function doLogin() {
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      try {
+        const user = await Api.login(phone, password);
+        window.location.href = dest[user.role];
+      } catch (e) {
+        document.getElementById('err').textContent = e.message;
+      }
+    }
+  </script>
+</body>
+</html>
