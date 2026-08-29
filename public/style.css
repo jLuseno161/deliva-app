@@ -1,0 +1,39 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --border: #2a2e38;
+  --text: #e7e9ee;
+  --muted: #9aa1ae;
+  --accent: #4f8cff;
+  --ok: #38c172;
+  --warn: #f4a442;
+  --danger: #ef4444;
+  font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
+h1, h2 { font-weight: 600; }
+.card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 12px;
+}
+input, select, button, textarea {
+  background: #0f1115; border: 1px solid var(--border); color: var(--text);
+  padding: 8px 10px; border-radius: 6px; font-size: 14px; width: 100%; margin-bottom: 8px;
+}
+button {
+  background: var(--accent); border: none; cursor: pointer; font-weight: 600; width: auto; padding: 8px 16px;
+}
+button:hover { opacity: 0.9; }
+button.secondary { background: transparent; border: 1px solid var(--border); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+.badge.Requested { background: #3a3f4b; color: var(--muted); }
+.badge.Assigned { background: rgba(244,164,66,0.15); color: var(--warn); }
+.badge.PickedUp { background: rgba(79,140,255,0.15); color: var(--accent); }
+.badge.Delivered { background: rgba(56,193,114,0.15); color: var(--ok); }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.muted { color: var(--muted); font-size: 13px; }
+.error { color: var(--danger); font-size: 13px; }
