@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deliva — Dispatcher</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="max-width:720px;margin:0 auto;">
+  <div class="topbar">
+    <h1>Dispatcher</h1>
+    <button class="secondary" onclick="Api.logout()">Sign out</button>
+  </div>
+
+  <h2>All requests</h2>
+  <div id="list"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    Api.requireRole('dispatcher');
+    const socket = io();
+    let riders = [];
+
+    async function load() {
+      riders = await Api.call('/auth/riders');
+      const rows = await Api.call('/deliveries');
+      document.getElementById('list').innerHTML = rows.map(r => `
+        <div class="card">
+          <div class="row"><b>#${r.id} ${r.customer_name}</b> <span class="badge ${r.status}">${r.status}</span></div>
+          <div class="muted">${r.address} — ${r.item_description}</div>
+          ${r.status === 'Requested' ? `
+            <div class="row" style="margin-top:8px;">
+              <select id="rider_${r.id}" style="width:auto;">
+                ${riders.map(rd => `<option value="${rd.id}">${rd.name}</option>`).join('')}
+              </select>
+              <button onclick="assign(${r.id})">Assign</button>
+            </div>` : ''}
+        </div>
+      `).join('') || '<p class="muted">No requests yet.</p>';
+    }
+
+    async function assign(id) {
+      const rider_id = document.getElementById(`rider_${id}`).value;
+      try {
+        await Api.call(`/deliveries/${id}/assign`, { method: 'POST', body: { rider_id } });
+        load();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    socket.on('request:new', load);
+    socket.on('request:updated', load);
+    load();
+  </script>
+</body>
+</html>
